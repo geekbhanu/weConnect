@@ -1,14 +1,19 @@
 const express = require ('express');
 
 const app = express();
-app.use ("/hello",(req, res)=>{
-    res.send("Hello Hello Hello from bhanu!");
-});
+//this will only handle get call to /user
+app.get("/user", (req, res)=>{
+    res.send({firstName: "Bhanu", lastName: "Srivastava"})
+})
 
-app.use ("/test",(req, res)=>{
-    res.send("Hello from the server!");
-});
-app.listen(3000,()=> {
-    console.log("server is successfully running on port 3000");
+//this will match all the http method calls to /test
+app.use("/test", (req, res)=>{
+    res.result("Hello from the server");
+})
+app.delete("/user", (req, res) =>{
+    res.send("Deleted Succesfully");
+})
+app.listen(7777,()=> {
+    console.log("server is successfully running on port 7777");
     
 });
