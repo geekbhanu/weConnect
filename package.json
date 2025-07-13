@@ -1,0 +1,20 @@
+{
+  "name": "weconnect-be",
+  "version": "1.0.0",
+  "description": "weconnect for developers",
+  "main": "index.js",
+  "scripts": {
+   "start": "node src/app.js",
+   "dev": "nodemon src/app.js"
+  },
+  "keywords": [
+    "node.js",
+    "js",
+    "backend"
+  ],
+  "author": "Bhanu Srivastava",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}      
