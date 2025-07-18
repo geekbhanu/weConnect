@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -14,11 +15,28 @@ const userSchema = new mongoose.Schema({
         lowercase: true, // Ensure emailId is stored in lowercase
         required: true, // Ensure emailId is required
         unique: true, // Ensure emailId is unique
-        trim: true // Remove any leading or trailing whitespace
+        trim: true, // Remove any leading or trailing whitespace
+        validate(value) {
+            if (!validator.isEmail(value)) {
+                throw new Error("Email is not valid :" + value );
+            }
+
+        },
     },
     password: {
         type: String,
-        required: true,    
+        required: true,
+        validate(value) {
+            if(!validator.isStrongPassword(value, {
+                minLength: 8,
+                minLowercase: 1,
+                minUppercase: 1,
+                minNumbers: 1,
+                minSymbols: 1
+            })) {
+                throw new Error("Password is not strong enough");
+            }   
+        }    
     },
     age: {
         type: Number,
@@ -35,7 +53,12 @@ const userSchema = new mongoose.Schema({
 },
     photoUrl: {
         type: String,
-        default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRISuukVSb_iHDfPAaDKboFWXZVloJW9XXiwGYFab-QwlAYQ3zFsx4fToY9ijcVNU5ieKk&usqp=CAU" // Default profile picture URL
+        default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRISuukVSb_iHDfPAaDKboFWXZVloJW9XXiwGYFab-QwlAYQ3zFsx4fToY9ijcVNU5ieKk&usqp=CAU", // Default profile picture URL
+        validate(value) {
+        if (!validator.isURL(value)) {
+            throw new Error("Photo URL is not valid: " + value);
+        }
+        },
     },
     about: {
         type: String,
