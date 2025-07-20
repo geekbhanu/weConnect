@@ -1,134 +1,16 @@
 const express = require("express")
 const connectDB = require("./config/database")
 const app = express()
-const User = require("./models/user")
-const  validateSignUpData  = require("./utils/validation")
-const bcrypt = require("bcrypt")
-
+const cookieParser = require("cookie-parser")
 app.use(express.json())
-
-//API - signup API - POST /signup
-// This API is used to create a new user
-app.post("/signup", async(req, res) =>{
-    try {
-    // Validation of data is required
-        validateSignUpData(req);
-        const { firstName, lastName, emailId, password } = req.body;
-        const passwordHash = await bcrypt.hash(password, 10); // Hash the password with a salt rounds of 10
-        console.log(passwordHash);
-    //Encrypt the password before saving it to the database
-
-    //Creating a new instance of the user model
-   const user = new User({
-    firstName,
-    lastName,
-    emailId,
-    password: passwordHash, // Use the hashed password
-   });
-    
-        await user.save();
-        res.send("User added successfully");
-        
-    }catch(err){
-        res.status(400).send("Error adding user: " + err.message);
-    }
-})
-app.post("/login", async (req, res) => {
-    try {
-        const {emailId, password} = req.body;
-        const user = await User.findOne({emailId: emailId})
-        if(!user){
-            throw new Error("Invalid credentials");
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if(isPasswordValid){
-            res.send("User logged in successfully");
-        }else{
-            throw new Error("Password is not valid");
-        }
-    }catch (err) {
-        res.status(400).send("Error logging in: " + err.message);
-    }
-})
-// Get user by emailId  - GET /user
-// This API is used to get user details by emailId
-app.get("/user", async (req, res) => {
-    const userEmail = req.body.emailId;
-    try{
-        const user = await User.findOne({emailId: userEmail}).exec();
-        if(!user){
-            res.status(404).send("User not found");
-        }else{
-            res.send(user);
-        }
-//         const user = await User.find({emailId: userEmail})
-//         if(user.length === 0) {
-//             res.length(404).send("User not found");
-//         }else{
-//  res.send(user);
-//         }
-    }
-    catch(err){
-        res.status(400).send("Something went Wrong");
-    }
-})
-//Feed API - GET /feed - GET all users
-// This API is used to get all users
-app.get("/feed", async (req, res) =>{
-    try{
-        const users = await User.find({});
-        res.send(users);
-    }catch (err){
-        res.status(400).send("Error fetching users: " + err.message);
-    }
-
-})
-// Delete user by userId - DELETE /user
-// This API is used to delete a user by userId
-app.delete("/user", async (req, res) =>{
-    const userId = req.body.userId;
-    try{
-        const user = await User.findByIdAndDelete({_id:userId});
-        // const user = await User.findByIdAndDelete(userId);
-        res.send("User deleted successfully");
-    }catch(err){
-        res.status(400).send("Something went wrong while deleting the user: " + err.message);
-    }
-})
-// Update user by userId - PUT /user
-// This API is used to update a user by userId
-app.patch("/user/:userId", async (req, res) =>{
-    const userId = req.params?.userId;
-    const data = req.body;
-  
-    try{
-          const ALLOWED_UPDATES = [
-            "userId",
-            "photoUrl", 
-            "about", 
-            "gender", 
-            "age", 
-            "skills"]
-const isUpdateAllowed = Object.keys(data).every((k)=>
-    ALLOWED_UPDATES.includes(k)
-);
-if(!isUpdateAllowed){
-    throw new Error ("update not allowed");
-}
-if (data?.skills.length > 10) {
-    throw new Error("Skills cannot have more than 10 items");
-}
-        const user = await User.findByIdAndUpdate({_id: userId },data, {
-        returnDocument: "after",
-        runValidators: true,
-        }); // Ensure that the update respects the schema validation rules
-        console.log(user);
-        res.send("User updated successfully");
-    }catch (err){
-        res.status(400).send("Update failed: " + err.message);  
-    }
-})
- connectDB()
+app.use(cookieParser()) // Middleware to parse cookies
+const authRouter = require("./routes/auth")
+const profileRouter = require("./routes/profile")
+const requestRouter = require("./routes/request")
+app.use("/auth", authRouter);
+app.use("/profile", profileRouter);
+app.use("/request", requestRouter);
+connectDB()
 .then(() =>{
     console.log("Database connection established...");
     app.listen(7777, ()=>{
